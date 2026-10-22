@@ -1,0 +1,38 @@
+
+# Python environment and cache
+venv/
+.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Secrets and environment settings
+.env
+.env.*
+!.env.example
+
+# Local databases and backups
+*.db
+*.sqlite
+*.sqlite3
+*backup*
+
+# Frontend dependencies and build output
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+
+# Private customer uploads and test files
+uploads/
+**/uploads/
+check_users.py
+
+# Logs and temporary files
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
