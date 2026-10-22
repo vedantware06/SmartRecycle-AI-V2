@@ -1,44 +1,88 @@
 # ♻️ SmartRecycle AI V2
 
-**Smart Recycling Business Management System**
+### Smart Recycling Business Management System
 
-SmartRecycle AI V2 is a web-based project designed to help manage recycling and scrap business operations digitally.
+SmartRecycle AI V2 is a web-based application designed to help manage a recycling and scrap business digitally. It aims to simplify purchase and sale transactions, track stock, view market prices, and manage customer scrap requests.
 
-## Features
+## 🚀 Features
 
-- User Registration and Login
-- Business Dashboard
-- Purchase and Sale Management
-- Market Price Management
-- Stock Management
-- Transaction History
-- Customer Scrap Requests
-- Photo Support
-- English and Marathi Language Support
+- 🔐 User Registration and Login
+- 📊 Business Dashboard
+- 🛒 Purchase and Sale Management
+- 💹 Market Price Management
+- 📦 Stock Management
+- 🧾 Transaction History
+- 📸 Customer Scrap Requests and Photo Support
+- 🌐 English and Marathi Language Support
 
-## Technologies Used
+## 🛠️ Technologies Used
 
-**Frontend:** React, Vite, JavaScript, CSS
+**Frontend**
+- React
+- Vite
+- JavaScript
+- CSS
 
-**Backend:** Python, FastAPI, SQLAlchemy
+**Backend**
+- Python
+- FastAPI
+- SQLAlchemy
 
-**Database:** SQLite
+**Database**
+- SQLite
 
-## Run Locally
+## 📁 Project Structure
 
-### Backend
+```text
+SmartRecycle-AI-V2/
+├── backend/
+│   ├── __init__.py
+│   ├── auth.py
+│   ├── customer_requests.py
+│   ├── database.py
+│   ├── init_db.py
+│   ├── main.py
+│   ├── models.py
+│   └── transactions.py
+├── frontend/
+│   ├── public/
+│   └── src/
+├── render.yaml
+├── requirements.txt
+└── README.md
+```
+
+## 💻 Run Locally
+
+### 1. Backend Setup
+
+Open a terminal in the project root folder and activate your Python virtual environment.
+
+Install the dependencies:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Initialize the database:
+
+```bash
 python -m backend.init_db
+```
+
+Start the backend server:
+
+```bash
 python -m uvicorn backend.main:app --reload
 ```
 
-API documentation: `http://127.0.0.1:8000/docs`
+Backend API documentation:
 
-### Frontend
+http://127.0.0.1:8000/docs
 
-Open another terminal:
+### 2. Frontend Setup
+
+Open a second terminal and run:
 
 ```bash
 cd frontend
@@ -46,14 +90,22 @@ npm install
 npm run dev
 ```
 
-Frontend: `http://localhost:5173`
+Open the frontend URL shown in the terminal, usually:
 
-## Project Status
+http://localhost:5173
 
-This project is under development. Deployment and features may change.
+## 🔒 Security
 
-## Developer
+- Do not upload local database files or private customer photos to GitHub.
+- Never commit passwords, API keys, or secret environment variables.
+- Configure the correct frontend URL and database settings before deployment.
 
-Vedant Ajay Ware
+## 📌 Project Status
+
+SmartRecycle AI V2 is under development. Features and deployment configuration may change as development continues.
+
+## 👨‍💻 Developer
+
+**Vedant Ajay Ware**
 
 TY B.Sc. Data Science Academic Project
