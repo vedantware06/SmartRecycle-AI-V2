@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect
+
 from backend.transactions import router as transactions_router
 from backend.auth import router as auth_router
 from backend.customer_requests import router as customer_requests_router
@@ -16,10 +17,13 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Allow Frontend Connection
+# Allow Local and Deployed Frontend Connections
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://smartrecycle-ai-v2-web.onrender.com",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,11 +34,13 @@ app.include_router(auth_router)
 
 # Customer Scrap Request API
 app.include_router(customer_requests_router)
+
+# Transactions API
 app.include_router(transactions_router)
-# Serve uploaded Scrap photos from project uploads folder
+
+# Serve uploaded Scrap photos
 BASE_DIR = Path(__file__).resolve().parent.parent
 UPLOAD_DIR = BASE_DIR / "uploads"
-
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app.mount(
