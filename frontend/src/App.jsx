@@ -6,7 +6,7 @@ import './App.css'
 
 
 
-const API = 'https://smartrecycle-ai-v2-api.onrender.com'
+const API = 'http://127.0.0.1:8000'
 
 
 
@@ -896,104 +896,154 @@ const [activePage
 
 
 
-        {activePage === 'Dashboard' && (
+        
+{activePage === 'Dashboard' && (
+  <div className="pro-dashboard">
 
-          <>
+    {/* Welcome Section */}
+    <section className="pro-welcome">
+      <div className="pro-welcome-content">
+        <span className="pro-eyebrow">♻ SMARTRECYCLE AI • BUSINESS OVERVIEW</span>
+        <h1>{t.banner}</h1>
+        <p>{t.bannerText}</p>
+        <div className="pro-welcome-tag">
+          <span>●</span> Business Management Dashboard
+        </div>
+      </div>
+      <div className="pro-hero-icon">♻️</div>
+    </section>
 
-            <section className="welcome-banner">
+    {/* Statistics */}
+    <div className="pro-section-heading">
+      <div>
+        <h2>Business Overview</h2>
+        <p>Your business at a glance</p>
+      </div>
+      <span className="pro-live">● System Online</span>
+    </div>
 
-              <div>
+    <section className="pro-stats-grid">
 
-                <h2>{t.banner}</h2>
+      <article className="pro-stat-card">
+        <div className="pro-stat-top">
+          <span className="pro-stat-icon purchase-icon">📥</span>
+          <span className="pro-stat-label">PURCHASE</span>
+        </div>
+        <p>{t.purchases}</p>
+        <h2>₹0.00</h2>
+        <small>Purchase / Sale</small>
+      </article>
 
-                <p>{t.bannerText}</p>
+      <article className="pro-stat-card">
+        <div className="pro-stat-top">
+          <span className="pro-stat-icon sales-icon">📤</span>
+          <span className="pro-stat-label">SALES</span>
+        </div>
+        <p>{t.sales}</p>
+        <h2>₹0.00</h2>
+        <small>Purchase / Sale</small>
+      </article>
 
-              </div>
+      <article className="pro-stat-card">
+        <div className="pro-stat-top">
+          <span className="pro-stat-icon stock-icon">♻️</span>
+          <span className="pro-stat-label">INVENTORY</span>
+        </div>
+        <p>{t.available}</p>
+        <h2>0 kg</h2>
+        <small>Stock Management</small>
+      </article>
 
-              <span>♻️</span>
+      <article className="pro-stat-card">
+        <div className="pro-stat-top">
+          <span className="pro-stat-icon market-icon">💹</span>
+          <span className="pro-stat-label">MARKET</span>
+        </div>
+        <p>{t.materials}</p>
+        <h2>0</h2>
+        <small>Market Prices</small>
+      </article>
 
-            </section>
+    </section>
 
+    {/* Quick Actions */}
+    <section className="pro-panel">
+      <div className="pro-panel-heading">
+        <div>
+          <h2>Quick Actions</h2>
+          <p>Manage your business quickly</p>
+        </div>
+        <span className="pro-panel-symbol">⚡</span>
+      </div>
 
+      <div className="pro-actions-grid">
+        <button onClick={() => setActivePage('Purchase / Sale')}>
+          <span>＋</span>
+          <div>
+            <strong>Purchase / Sale</strong>
+            <small>Manage transactions</small>
+          </div>
+          <b>→</b>
+        </button>
 
-            <section className="stats-grid">
+        <button onClick={() => setActivePage('Stock Management')}>
+          <span>♻</span>
+          <div>
+            <strong>Stock Management</strong>
+            <small>Manage available stock</small>
+          </div>
+          <b>→</b>
+        </button>
 
-              <article className="stat-card">
+        <button onClick={() => setActivePage('Market Prices')}>
+          <span>₹</span>
+          <div>
+            <strong>Market Prices</strong>
+            <small>Check current rates</small>
+          </div>
+          <b>→</b>
+        </button>
 
-                <span>📥</span><p>{t.purchases}</p>
+        <button onClick={() => setActivePage('Transactions')}>
+          <span>▤</span>
+          <div>
+            <strong>Transactions</strong>
+            <small>View business records</small>
+          </div>
+          <b>→</b>
+        </button>
 
-                <h2>₹0.00</h2><small>{t.purchase}</small>
+        <button onClick={() => setActivePage('Customer Requests')}>
+          <span>👥</span>
+          <div>
+            <strong>Customer Requests</strong>
+            <small>Manage scrap requests</small>
+          </div>
+          <b>→</b>
+        </button>
+      </div>
+    </section>
 
-              </article>
+    {/* Recent Activity */}
+    <section className="pro-panel pro-activity">
+      <div className="pro-panel-heading">
+        <div>
+          <h2>Recent Activity</h2>
+          <p>Your latest business updates</p>
+        </div>
+        <span className="pro-panel-symbol">◷</span>
+      </div>
 
-              <article className="stat-card">
+      <div className="pro-empty-state">
+        <span>📋</span>
+        <h3>No Recent Activity</h3>
+        <p>Your latest transactions will appear here.</p>
+      </div>
+    </section>
 
-                <span>📤</span><p>{t.sales}</p>
-
-                <h2>₹0.00</h2><small>{t.purchase}</small>
-
-              </article>
-
-              <article className="stat-card">
-
-                <span>♻️</span><p>{t.available}</p>
-
-                <h2>0 kg</h2><small>{t.stock}</small>
-
-              </article>
-
-              <article className="stat-card">
-
-                <span>💹</span><p>{t.materials}</p>
-
-                <h2>0</h2><small>{t.market}</small>
-
-              </article>
-
-            </section>
-
-
-
-            <section className="content-panel">
-
-              <h2>{t.quick}</h2>
-
-              <p>{t.choose}</p>
-
-              <div className="quick-grid">
-
-                <button onClick={() => setActivePage('Purchase / Sale')}>＋ {t.purchase}</button>
-
-                <button onClick={() => setActivePage('Stock Management')}>♻ {t.stock}</button>
-
-                <button onClick={() => setActivePage('Market Prices')}>₹ {t.market}</button>
-
-                <button onClick={() => setActivePage('Transactions')}>▤ {t.transactions}</button>
-
-                <button onClick={() => setActivePage('Customer Requests')}>👥 {t.customers}</button>
-
-              </div>
-
-            </section>
-
-
-
-            <section className="content-panel">
-
-              <h2>{t.recent}</h2>
-
-              <p>{t.choose}</p>
-
-            </section>
-
-          </>
-
-        )}
-
-
-
-        {activePage === 'Customer Requests' && (
-
+  </div>
+)}
+{activePage === 'Customer Requests' && (
           <>
 
             <section style={panelStyle}>
