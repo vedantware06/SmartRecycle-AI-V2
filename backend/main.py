@@ -9,6 +9,8 @@ from sqlalchemy import inspect
 from backend.transactions import router as transactions_router
 from backend.auth import router as auth_router
 from backend.customer_requests import router as customer_requests_router
+from backend.market_prices import router as market_prices_router
+from backend.stock import router as stock_router
 from backend.database import engine
 
 app = FastAPI(
@@ -37,6 +39,12 @@ app.include_router(customer_requests_router)
 
 # Transactions API
 app.include_router(transactions_router)
+
+# Market Prices API
+app.include_router(market_prices_router)
+
+# Stock Management API
+app.include_router(stock_router)
 
 # Serve uploaded Scrap photos
 BASE_DIR = Path(__file__).resolve().parent.parent

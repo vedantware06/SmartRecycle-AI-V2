@@ -6,7 +6,7 @@ import './App.css'
 
 
 
-const API = 'http://127.0.0.1:8000'
+const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
 
 
 
@@ -295,6 +295,12 @@ const [activePage
   const [requests, setRequests] = useState([])
 
   const [requestLoading, setRequestLoading] = useState(false)
+  const [stock, setStock] = useState([])
+  const [stockSummary, setStockSummary] = useState(null)
+  const [marketPrices, setMarketPrices] = useState([])
+  const [transactions, setTransactions] = useState([])
+  const [moduleLoading, setModuleLoading] = useState(false)
+  const [marketForm, setMarketForm] = useState({ material: '', price_per_kg: '' })
 
 
 
@@ -409,6 +415,84 @@ const [activePage
 
 
 
+  async function fetchJson(path, options) {
+    const response = await fetch(`${API}${path}`, options)
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      const detail = Array.isArray(data.detail)
+        ? data.detail.map(item => item.msg).join(', ')
+        : data.detail
+      throw new Error(detail || t.error)
+    }
+    return data
+  }
+
+  async function loadStock() {
+    setModuleLoading(true)
+    setMessage('')
+    try {
+      const [stockData, summaryData] = await Promise.all([
+        fetchJson('/stock/'),
+        fetchJson('/stock/summary')
+      ])
+      setStock(Array.isArray(stockData) ? stockData : stockData.items || stockData.stock || [])
+      setStockSummary(summaryData)
+    } catch (error) {
+      setMessage(error.message || t.backendError)
+    } finally {
+      setModuleLoading(false)
+    }
+  }
+
+  async function loadMarketPrices() {
+    setModuleLoading(true)
+    setMessage('')
+    try {
+      const data = await fetchJson('/market-prices/')
+      setMarketPrices(Array.isArray(data) ? data : data.items || data.prices || [])
+    } catch (error) {
+      setMessage(error.message || t.backendError)
+    } finally {
+      setModuleLoading(false)
+    }
+  }
+
+  async function addMarketPrice(e) {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+    try {
+      await fetchJson('/market-prices/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          material: marketForm.material,
+          price_per_kg: Number(marketForm.price_per_kg)
+        })
+      })
+      setMarketForm({ material: '', price_per_kg: '' })
+      setMessage('Market price added successfully!')
+      await loadMarketPrices()
+    } catch (error) {
+      setMessage(error.message || t.backendError)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function loadTransactions() {
+    setModuleLoading(true)
+    setMessage('')
+    try {
+      const data = await fetchJson('/transactions/')
+      setTransactions(Array.isArray(data) ? data : data.items || data.transactions || [])
+    } catch (error) {
+      setMessage(error.message || t.backendError)
+    } finally {
+      setModuleLoading(false)
+    }
+  }
+
   async function loadRequests() {
 
     setRequestLoading(true)
@@ -462,12 +546,11 @@ const [activePage
 
   useEffect(() => {
 
-    if (loggedIn && activePage === 'Customer Requests') {
-
-      loadRequests()
-
-    }
-
+    if (!loggedIn) return
+    if (activePage === 'Customer Requests') loadRequests()
+    if (activePage === 'Stock Management') loadStock()
+    if (activePage === 'Market Prices') loadMarketPrices()
+    if (activePage === 'Transactions') loadTransactions()
   }, [loggedIn, activePage])
 
 
@@ -1461,21 +1544,85 @@ const [activePage
           </section>
         )}
 
-        {activePage !== 'Dashboard' &&
-          activePage !== 'Customer Requests' &&
-          activePage !== 'Purchase / Sale' && (
-            <section className="content-panel module-panel">
-              <div className="module-icon">♻️</div>
-              <h2>{pages.find(p => p.key === activePage)?.label}</h2>
-              <p>{t.moduleText}</p>
-              <button
-                className="module-btn"
-                onClick={() => setActivePage('Dashboard')}
-              >
-                ← {t.backDashboard}
-              </button>
+        {activePage === 'Stock Management' && (
+          <section className="content-panel module-panel" style={panelStyle}>
+            <h2>♻️ Stock Management</h2>
+            {moduleLoading ? <p>{t.loading}</p> : (
+              <>
+                <p>Available quantity: <strong>{stockSummary?.total_quantity_kg ?? stockSummary?.total_stock_kg ?? stockSummary?.total_quantity ?? '—'} kg</strong></p>
+                {stock.length === 0 ? <p>No scrap material is currently in stock.</p> : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead><tr>{['Material', 'Quantity (kg)', 'Updated'].map(label => <th key={label} style={{ padding: 10, borderBottom: '1px solid #ddd' }}>{label}</th>)}</tr></thead>
+                      <tbody>{stock.map((item, index) => <tr key={item.id ?? `${item.material}-${index}`}>
+                        <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.material ?? item.name ?? '—'}</td>
+                        <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.quantity_kg ?? item.available_quantity_kg ?? item.quantity ?? '—'}</td>
+                        <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.updated_at ? new Date(item.updated_at).toLocaleString() : '—'}</td>
+                      </tr>)}</tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+            <button className="module-btn" onClick={loadStock} disabled={moduleLoading}>↻ Refresh</button>
+            {message && <p role="status">{message}</p>}
+          </section>
+        )}
+
+        {activePage === 'Market Prices' && (
+          <>
+            <section className="content-panel module-panel" style={panelStyle}>
+              <h2>💹 Add Market Price</h2>
+              <form onSubmit={addMarketPrice} style={{ display: 'grid', gap: 8, maxWidth: 560 }}>
+                <label htmlFor="market-material">Scrap material</label>
+                <select id="market-material" style={inputStyle} value={marketForm.material} onChange={e => setMarketForm({ ...marketForm, material: e.target.value })} required>
+                  <option value="">Select material</option>
+                  {['Plastic', 'Paper', 'Metal', 'Cardboard', 'Glass', 'Other'].map(material => <option key={material} value={material}>{material}</option>)}
+                </select>
+                <label htmlFor="market-price">Price per kg (₹)</label>
+                <input id="market-price" type="number" min="0" step="0.01" style={inputStyle} value={marketForm.price_per_kg} onChange={e => setMarketForm({ ...marketForm, price_per_kg: e.target.value })} required />
+                <button className="submit-btn" type="submit" disabled={loading}>{loading ? t.wait : 'Add Market Price'}</button>
+              </form>
+              {message && <p role="status">{message}</p>}
             </section>
-          )} 
+            <section className="content-panel module-panel" style={panelStyle}>
+              <h2>Market Prices</h2>
+              <button className="module-btn" onClick={loadMarketPrices} disabled={moduleLoading}>↻ Refresh</button>
+              {moduleLoading ? <p>{t.loading}</p> : marketPrices.length === 0 ? <p>No market prices found.</p> : (
+                <div style={{ overflowX: 'auto', marginTop: 16 }}><table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead><tr>{['Material', 'Price per kg', 'Updated'].map(label => <th key={label} style={{ padding: 10, borderBottom: '1px solid #ddd' }}>{label}</th>)}</tr></thead>
+                  <tbody>{marketPrices.map((item, index) => <tr key={item.id ?? `${item.material}-${index}`}>
+                    <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.material ?? item.name ?? '—'}</td>
+                    <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>₹{item.price_per_kg ?? item.rate_per_kg ?? item.price ?? '—'}</td>
+                    <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.updated_at ? new Date(item.updated_at).toLocaleString() : item.effective_date ?? '—'}</td>
+                  </tr>)}</tbody>
+                </table></div>
+              )}
+            </section>
+          </>
+        )}
+
+        {activePage === 'Transactions' && (
+          <section className="content-panel module-panel" style={panelStyle}>
+            <h2>▤ Transaction History</h2>
+            <button className="module-btn" onClick={loadTransactions} disabled={moduleLoading}>↻ Refresh</button>
+            {moduleLoading ? <p>{t.loading}</p> : transactions.length === 0 ? <p>No purchase or sale transactions found.</p> : (
+              <div style={{ overflowX: 'auto', marginTop: 16 }}><table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead><tr>{['Date', 'Type', 'Material', 'Quantity (kg)', 'Rate / kg', 'Total', 'Party'].map(label => <th key={label} style={{ padding: 10, borderBottom: '1px solid #ddd' }}>{label}</th>)}</tr></thead>
+                <tbody>{transactions.map((item, index) => <tr key={item.id ?? index}>
+                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.created_at ? new Date(item.created_at).toLocaleString() : item.date ?? '—'}</td>
+                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.transaction_type ?? item.type ?? '—'}</td>
+                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.material ?? '—'}</td>
+                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.quantity_kg ?? item.quantity ?? '—'}</td>
+                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>₹{item.rate_per_kg ?? item.rate ?? '—'}</td>
+                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>₹{item.total_amount ?? item.total ?? '—'}</td>
+                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.party_name ?? item.customer_name ?? '—'}</td>
+                </tr>)}</tbody>
+              </table></div>
+            )}
+            {message && <p role="status">{message}</p>}
+          </section>
+        )} 
       </main>
     </div>
   )
