@@ -1,4 +1,6 @@
 
+import os
+import hmac
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -16,9 +18,6 @@ password_context = CryptContext(
     deprecated="auto"
 )
 
-# Change this to your actual owner username
-OWNER_USERNAME = "vedant_owner"
-
 
 class RegisterRequest(BaseModel):
     username: str = Field(min_length=3, max_length=100)
@@ -30,25 +29,25 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class OwnerResetRequest(BaseModel):
+    secret: str = Field(min_length=32, max_length=200)
+    username: str = Field(min_length=3, max_length=100)
+    new_password: str = Field(min_length=12, max_length=72)
+
+
 @router.post("/register")
 def register(data: RegisterRequest, db: Session = Depends(get_db)):
     username = data.username.strip()
 
     if len(username) < 3:
-        raise HTTPException(
-            status_code=400,
-            detail="Username must contain at least 3 characters"
-        )
+        raise HTTPException(status_code=400, detail="Invalid username")
 
     existing_user = db.query(User).filter(
         User.username == username
     ).first()
 
     if existing_user:
-        raise HTTPException(
-            status_code=409,
-            detail="Username already exists"
-        )
+        raise HTTPException(status_code=409, detail="Username already exists")
 
     user = User(
         username=username,
@@ -69,12 +68,52 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/login")
-def login(data: LoginRequest, db: Session = Depends(get_db)):
+@router.post("/reset-owner")
+def reset_owner(data: OwnerResetRequest, db: Session = Depends(get_db)):
+    configured_secret = os.getenv("OWNER_RESET_SECRET")
+
+    if not configured_secret or not hmac.compare_digest(
+        data.secret, configured_secret
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid reset authorization"
+        )
+
     username = data.username.strip()
 
     user = db.query(User).filter(
         User.username == username
+    ).first()
+
+    if user:
+        user.password_hash = password_context.hash(data.new_password)
+        user.role = "owner"
+        user.is_active = True
+    else:
+        user = User(
+            username=username,
+            password_hash=password_context.hash(data.new_password),
+            role="owner",
+            is_active=True,
+            created_at=datetime.utcnow()
+        )
+        db.add(user)
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "Owner account reset successful",
+        "username": user.username,
+        "role": user.role
+    }
+
+
+@router.post("/login")
+def login(data: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(
+        User.username == data.username.strip()
     ).first()
 
     if (
