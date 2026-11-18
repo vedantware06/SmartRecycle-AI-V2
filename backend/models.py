@@ -22,6 +22,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(100), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     language: Mapped[str] = mapped_column(String(2), default="en")
+    role: Mapped[str] = mapped_column(String(20), default="customer", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow

@@ -113,14 +113,26 @@ const translations = {
     selectMaterial: 'Select material',
 
     plastic: 'Plastic',
-
-    paper: 'Paper',
-
-    metal: 'Metal',
-
-    cardboard: 'Cardboard',
-
-    glass: 'Glass',
+paper: 'Paper',
+metal: 'Metal',
+cardboard: 'Cardboard',
+glass: 'Glass',
+iron: 'Iron',
+steel: 'Steel',
+aluminium: 'Aluminium',
+copper: 'Copper',
+brass: 'Brass',
+newspaper: 'Newspaper',
+petBottles: 'PET Bottles',
+rubber: 'Rubber',
+tyre: 'Tyre Scrap',
+ewaste: 'E-Waste',
+battery: 'Battery Scrap',
+wire: 'Wire Scrap',
+motor: 'Motor Scrap',
+stainlessSteel: 'Stainless Steel',
+mixedMetal: 'Mixed Metal',
+other: 'Other',
 
     other: 'Other',
 
@@ -240,21 +252,30 @@ const translations = {
 
     selectMaterial: 'प्रकार निवडा',
 
-    plastic: 'प्लास्टिक',
+plastic: 'प्लास्टिक',
+paper: 'कागद',
+metal: 'धातू',
+cardboard: 'पुठ्ठा',
+glass: 'काच',
+iron: 'लोखंड',
+steel: 'स्टील',
+aluminium: 'ॲल्युमिनियम',
+copper: 'तांबे',
+brass: 'पितळ',
+newspaper: 'जुने वर्तमानपत्र',
+petBottles: 'प्लास्टिक बाटल्या',
+rubber: 'रबर',
+tyre: 'जुने टायर',
+ewaste: 'इलेक्ट्रॉनिक कचरा',
+battery: 'जुन्या बॅटऱ्या',
+wire: 'वायर्स',
+motor: 'मोटर स्क्रॅप',
+stainlessSteel: 'स्टेनलेस स्टील',
+mixedMetal: 'मिश्र धातू',
+other: 'इतर',
 
-    paper: 'कागद',
-
-    metal: 'धातू',
-
-    cardboard: 'पुठ्ठा',
-
-    glass: 'काच',
-
-    other: 'इतर',
-
-    status: 'स्थिती',
-
-    date: 'दिनांक',
+status: 'स्थिती',
+date: 'दिनांक',
 
     backDashboard: 'डॅशबोर्डवर परत जा',
 
@@ -326,7 +347,18 @@ const [activePage
 
   const t = translations[language]
 
+const totalPurchases = transactions
+  .filter(item => item.transaction_type === 'Purchase')
+  .reduce((sum, item) => sum + Number(item.total_amount || 0), 0)
 
+const totalSales = transactions
+  .filter(item => item.transaction_type === 'Sale')
+  .reduce((sum, item) => sum + Number(item.total_amount || 0), 0)
+
+const availableStock = stock
+  .reduce((sum, item) => sum + Number(item.quantity_kg || 0), 0)
+
+const totalMaterials = marketPrices.length
 
   const pages = [
 
@@ -457,28 +489,38 @@ const [activePage
     }
   }
 
-  async function addMarketPrice(e) {
-    e.preventDefault()
-    setLoading(true)
-    setMessage('')
-    try {
-      await fetchJson('/market-prices/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          material: marketForm.material,
-          price_per_kg: Number(marketForm.price_per_kg)
-        })
-      })
-      setMarketForm({ material: '', price_per_kg: '' })
-      setMessage('Market price added successfully!')
-      await loadMarketPrices()
-    } catch (error) {
-      setMessage(error.message || t.backendError)
-    } finally {
-      setLoading(false)
-    }
+ 
+async function addMarketPrice(e) {
+  e.preventDefault()
+  setLoading(true)
+  setMessage('')
+
+  try {
+    const formData = new URLSearchParams()
+    formData.append('material', marketForm.material)
+    formData.append('rate_per_kg', marketForm.price_per_kg)
+    formData.append('condition', 'Average')
+    formData.append('source', 'Manual entry')
+
+    await fetchJson('/market-prices/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: formData.toString()
+    })
+
+    setMarketForm({ material: '', price_per_kg: '' })
+    setMessage('Market price added successfully!')
+    await loadMarketPrices()
+
+  } catch (error) {
+    setMessage(error.message || t.backendError)
+  } finally {
+    setLoading(false)
   }
+}
+
 
   async function loadTransactions() {
     setModuleLoading(true)
@@ -1007,47 +1049,47 @@ const [activePage
 
     <section className="pro-stats-grid">
 
-      <article className="pro-stat-card">
-        <div className="pro-stat-top">
-          <span className="pro-stat-icon purchase-icon">📥</span>
-          <span className="pro-stat-label">PURCHASE</span>
-        </div>
-        <p>{t.purchases}</p>
-        <h2>₹0.00</h2>
-        <small>Purchase / Sale</small>
-      </article>
+  <article className="pro-stat-card">
+    <div className="pro-stat-top">
+      <span className="pro-stat-icon purchase-icon">📥</span>
+      <span className="pro-stat-label">PURCHASE</span>
+    </div>
+    <p>{t.purchases}</p>
+    <h2>₹{totalPurchases.toFixed(2)}</h2>
+    <small>Purchase / Sale</small>
+  </article>
 
-      <article className="pro-stat-card">
-        <div className="pro-stat-top">
-          <span className="pro-stat-icon sales-icon">📤</span>
-          <span className="pro-stat-label">SALES</span>
-        </div>
-        <p>{t.sales}</p>
-        <h2>₹0.00</h2>
-        <small>Purchase / Sale</small>
-      </article>
+  <article className="pro-stat-card">
+    <div className="pro-stat-top">
+      <span className="pro-stat-icon sales-icon">📤</span>
+      <span className="pro-stat-label">SALES</span>
+    </div>
+    <p>{t.sales}</p>
+    <h2>₹{totalSales.toFixed(2)}</h2>
+    <small>Purchase / Sale</small>
+  </article>
 
-      <article className="pro-stat-card">
-        <div className="pro-stat-top">
-          <span className="pro-stat-icon stock-icon">♻️</span>
-          <span className="pro-stat-label">INVENTORY</span>
-        </div>
-        <p>{t.available}</p>
-        <h2>0 kg</h2>
-        <small>Stock Management</small>
-      </article>
+  <article className="pro-stat-card">
+    <div className="pro-stat-top">
+      <span className="pro-stat-icon stock-icon">♻️</span>
+      <span className="pro-stat-label">INVENTORY</span>
+    </div>
+    <p>{t.available}</p>
+    <h2>{availableStock.toFixed(2)} kg</h2>
+    <small>Stock Management</small>
+  </article>
 
-      <article className="pro-stat-card">
-        <div className="pro-stat-top">
-          <span className="pro-stat-icon market-icon">💹</span>
-          <span className="pro-stat-label">MARKET</span>
-        </div>
-        <p>{t.materials}</p>
-        <h2>0</h2>
-        <small>Market Prices</small>
-      </article>
+  <article className="pro-stat-card">
+    <div className="pro-stat-top">
+      <span className="pro-stat-icon market-icon">💹</span>
+      <span className="pro-stat-label">MARKET</span>
+    </div>
+    <p>{t.materials}</p>
+    <h2>{totalMaterials}</h2>
+    <small>Market Prices</small>
+  </article>
 
-    </section>
+</section>
 
     {/* Quick Actions */}
     <section className="pro-panel">
@@ -1107,22 +1149,41 @@ const [activePage
       </div>
     </section>
 
-    {/* Recent Activity */}
-    <section className="pro-panel pro-activity">
-      <div className="pro-panel-heading">
-        <div>
-          <h2>Recent Activity</h2>
-          <p>Your latest business updates</p>
-        </div>
-        <span className="pro-panel-symbol">◷</span>
-      </div>
+    
+{/* Recent Activity */}
+<section className="pro-panel pro-activity">
+  <div className="pro-panel-heading">
+    <div>
+      <h2>Recent Activity</h2>
+      <p>Your latest business updates</p>
+    </div>
+    <span className="pro-panel-symbol">◷</span>
+  </div>
 
-      <div className="pro-empty-state">
-        <span>📋</span>
-        <h3>No Recent Activity</h3>
-        <p>Your latest transactions will appear here.</p>
-      </div>
-    </section>
+  {transactions.length > 0 ? (
+    [...transactions]
+      .sort((a, b) =>
+        new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      )
+      .slice(0, 5)
+      .map((item, index) => (
+        <div className="pro-activity-item" key={item.id || index}>
+          <div>
+            <strong>{item.transaction_type} - {item.material}</strong>
+            <p>{item.quantity_kg} kg × ₹{item.rate_per_kg}/kg</p>
+          </div>
+          <strong>₹{Number(item.total_amount || 0).toFixed(2)}</strong>
+        </div>
+      ))
+  ) : (
+    <div className="pro-empty-state">
+      <span>📋</span>
+      <h3>No Recent Activity</h3>
+      <p>Your latest transactions will appear here.</p>
+    </div>
+  )}
+</section>
+
 
   </div>
 )}
@@ -1199,19 +1260,30 @@ const [activePage
 
                 >
 
-                  <option value="">{t.selectMaterial}</option>
+                  
+<option value="">{t.selectMaterial}</option>
+<option value="Plastic">{t.plastic}</option>
+<option value="Paper">{t.paper}</option>
+<option value="Metal">{t.metal}</option>
+<option value="Cardboard">{t.cardboard}</option>
+<option value="Glass">{t.glass}</option>
+<option value="Iron">{t.iron}</option>
+<option value="Steel">{t.steel}</option>
+<option value="Aluminium">{t.aluminium}</option>
+<option value="Copper">{t.copper}</option>
+<option value="Brass">{t.brass}</option>
+<option value="Newspaper">{t.newspaper}</option>
+<option value="PET Bottles">{t.petBottles}</option>
+<option value="Rubber">{t.rubber}</option>
+<option value="Tyre Scrap">{t.tyre}</option>
+<option value="E-Waste">{t.ewaste}</option>
+<option value="Battery Scrap">{t.battery}</option>
+<option value="Wire Scrap">{t.wire}</option>
+<option value="Motor Scrap">{t.motor}</option>
+<option value="Stainless Steel">{t.stainlessSteel}</option>
+<option value="Mixed Metal">{t.mixedMetal}</option>
+<option value="Other">{t.other}</option>
 
-                  <option value="Plastic">{t.plastic}</option>
-
-                  <option value="Paper">{t.paper}</option>
-
-                  <option value="Metal">{t.metal}</option>
-
-                  <option value="Cardboard">{t.cardboard}</option>
-
-                  <option value="Glass">{t.glass}</option>
-
-                  <option value="Other">{t.other}</option>
 
                 </select>
 
@@ -1434,18 +1506,7 @@ const [activePage
 
         
 
-  {activePage === 'Purchase / Sale' && (
-  <section className="content-panel module-panel">
-    <h2>♻️ Purchase / Sale</h2>
-    <p>Purchase / Sale form is coming next.</p>
-    <button
-      className="module-btn"
-      onClick={() => setActivePage('Dashboard')}
-    >
-      ← {t.backDashboard}
-    </button>
-  </section>
-)}
+ 
 
             {activePage === 'Purchase / Sale' && (
           <section className="content-panel module-panel">
@@ -1485,14 +1546,29 @@ const [activePage
 
               <label>Scrap Material</label>
               <select name="material" required style={inputStyle}>
-                <option value="">Select material</option>
-                <option value="Plastic">Plastic</option>
-                <option value="Paper">Paper</option>
-                <option value="Metal">Metal</option>
-                <option value="Cardboard">Cardboard</option>
-                <option value="Glass">Glass</option>
-                <option value="Other">Other</option>
-              </select>
+  <option value="">Select material</option>
+  <option value="Plastic">Plastic</option>
+  <option value="Paper">Paper</option>
+  <option value="Metal">Metal</option>
+  <option value="Cardboard">Cardboard</option>
+  <option value="Glass">Glass</option>
+  <option value="Iron">Iron</option>
+  <option value="Steel">Steel</option>
+  <option value="Aluminium">Aluminium</option>
+  <option value="Copper">Copper</option>
+  <option value="Brass">Brass</option>
+  <option value="Newspaper">Newspaper</option>
+  <option value="PET Bottles">PET Bottles</option>
+  <option value="Rubber">Rubber</option>
+  <option value="Tyre Scrap">Tyre Scrap</option>
+  <option value="E-Waste">E-Waste</option>
+  <option value="Battery Scrap">Battery Scrap</option>
+  <option value="Wire Scrap">Wire Scrap</option>
+  <option value="Motor Scrap">Motor Scrap</option>
+  <option value="Stainless Steel">Stainless Steel</option>
+  <option value="Mixed Metal">Mixed Metal</option>
+  <option value="Other">Other</option>
+</select>
 
               <label>Quantity (kg)</label>
               <input
@@ -1577,7 +1653,29 @@ const [activePage
                 <label htmlFor="market-material">Scrap material</label>
                 <select id="market-material" style={inputStyle} value={marketForm.material} onChange={e => setMarketForm({ ...marketForm, material: e.target.value })} required>
                   <option value="">Select material</option>
-                  {['Plastic', 'Paper', 'Metal', 'Cardboard', 'Glass', 'Other'].map(material => <option key={material} value={material}>{material}</option>)}
+                  {[
+  'Plastic',
+  'Paper',
+  'Metal',
+  'Cardboard',
+  'Glass',
+  'Iron',
+  'Steel',
+  'Aluminium',
+  'Copper',
+  'Brass',
+  'Newspaper',
+  'PET Bottles',
+  'Rubber',
+  'Tyre Scrap',
+  'E-Waste',
+  'Battery Scrap',
+  'Wire Scrap',
+  'Motor Scrap',
+  'Stainless Steel',
+  'Mixed Metal',
+  'Other'
+].map(material => <option key={material} value={material}>{material}</option>)}
                 </select>
                 <label htmlFor="market-price">Price per kg (₹)</label>
                 <input id="market-price" type="number" min="0" step="0.01" style={inputStyle} value={marketForm.price_per_kg} onChange={e => setMarketForm({ ...marketForm, price_per_kg: e.target.value })} required />
@@ -1608,15 +1706,37 @@ const [activePage
             <button className="module-btn" onClick={loadTransactions} disabled={moduleLoading}>↻ Refresh</button>
             {moduleLoading ? <p>{t.loading}</p> : transactions.length === 0 ? <p>No purchase or sale transactions found.</p> : (
               <div style={{ overflowX: 'auto', marginTop: 16 }}><table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead><tr>{['Date', 'Type', 'Material', 'Quantity (kg)', 'Rate / kg', 'Total', 'Party'].map(label => <th key={label} style={{ padding: 10, borderBottom: '1px solid #ddd' }}>{label}</th>)}</tr></thead>
+                
+                <thead><tr>{['Date', 'Type', 'Material', 'Quantity (kg)', 'Rate / kg', 'Total', 'Party', 'Photo'].map(label => <th key={label} style={{ padding: 10, borderBottom: '1px solid #ddd' }}>{label}</th>)}</tr></thead>
                 <tbody>{transactions.map((item, index) => <tr key={item.id ?? index}>
-                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.created_at ? new Date(item.created_at).toLocaleString() : item.date ?? '—'}</td>
+              
+                 <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.created_at ? new Date(item.created_at).toLocaleString() : item.date ?? '—'}</td>
                   <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.transaction_type ?? item.type ?? '—'}</td>
                   <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.material ?? '—'}</td>
                   <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.quantity_kg ?? item.quantity ?? '—'}</td>
                   <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>₹{item.rate_per_kg ?? item.rate ?? '—'}</td>
                   <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>₹{item.total_amount ?? item.total ?? '—'}</td>
                   <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{item.party_name ?? item.customer_name ?? '—'}</td>
+                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>
+  {item.photo_path ? (
+    <img
+      src={`http://127.0.0.1:8000/${item.photo_path}`}
+      alt="Scrap Photo"
+      style={{
+        width: 70,
+        height: 70,
+        objectFit: 'cover',
+        borderRadius: 8
+      }}
+    />
+  ) : (
+    'No Photo'
+  )}
+</td>
+                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>
+                    {item.photo_url ? <img src={item.photo_url} alt="Transaction" style={{ maxWidth: 100, maxHeight: 100 }} /> : '—'}
+            
+                  </td>
                 </tr>)}</tbody>
               </table></div>
             )}

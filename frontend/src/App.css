@@ -842,3 +842,108 @@ input:focus {
     padding: 12px;
   }
 }
+
+/* =================================
+   SMARTRECYCLE AI - MOBILE FIX
+================================= */
+
+@media (max-width: 700px) {
+
+  .dashboard-layout {
+    flex-direction: column;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    padding: 12px;
+  }
+
+  .sidebar h2 {
+    width: 100%;
+    font-size: 17px;
+    margin-bottom: 4px;
+  }
+
+  .side-caption,
+  .side-bottom {
+    display: none;
+  }
+
+  .nav-item {
+    flex: 1 1 auto;
+    width: auto;
+    justify-content: center;
+    margin: 2px;
+    padding: 10px 7px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .dashboard-main {
+    width: 100%;
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .topbar-actions {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .pro-welcome {
+    padding: 20px;
+    min-height: auto;
+  }
+
+  .pro-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .pro-stat-card {
+    padding: 13px;
+  }
+
+  .pro-stat-card h2 {
+    font-size: 19px;
+    overflow-wrap: anywhere;
+  }
+
+  .pro-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pro-panel {
+    padding: 15px;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 400px) {
+
+  .nav-item {
+    font-size: 11px;
+    padding: 9px 5px;
+  }
+
+  .dashboard-main {
+    padding: 10px;
+  }
+
+  .pro-stats-grid {
+    gap: 8px;
+  }
+}

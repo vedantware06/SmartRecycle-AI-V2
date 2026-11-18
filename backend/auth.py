@@ -16,6 +16,9 @@ password_context = CryptContext(
     deprecated="auto"
 )
 
+# Change this to your actual owner username
+OWNER_USERNAME = "vedant_owner"
+
 
 class RegisterRequest(BaseModel):
     username: str = Field(min_length=3, max_length=100)
@@ -50,6 +53,7 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     user = User(
         username=username,
         password_hash=password_context.hash(data.password),
+        role="customer",
         created_at=datetime.utcnow()
     )
 
@@ -60,14 +64,17 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     return {
         "message": "Registration successful",
         "user_id": user.id,
-        "username": user.username
+        "username": user.username,
+        "role": user.role
     }
 
 
 @router.post("/login")
 def login(data: LoginRequest, db: Session = Depends(get_db)):
+    username = data.username.strip()
+
     user = db.query(User).filter(
-        User.username == data.username.strip()
+        User.username == username
     ).first()
 
     if (
@@ -86,5 +93,6 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         "message": "Login successful",
         "user_id": user.id,
         "username": user.username,
+        "role": user.role,
         "language": user.language
     }
